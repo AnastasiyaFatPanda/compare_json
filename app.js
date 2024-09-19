@@ -7,38 +7,37 @@ const now = moment().format('YYYYMMDDHHmm');
 const logFilePath = `./differences${now}.log`; // Path to the log file
 
 // Function to process and compare JSON files
-function compareJSONFiles(file1Path, file2Path) {
-  const file1Stream = fs.createReadStream(file1Path).pipe(JSONStream.parse('*'));
-  const file2Stream = fs.createReadStream(file2Path).pipe(JSONStream.parse('*'));
+async function compareJSONFiles(file1Path, file2Path) {
+  try {
+    // Read and collect data from both files
+    const [file1Data, file2Data] = await Promise.all([readJSONFile(file1Path), readJSONFile(file2Path)]);
 
-  let file1Data = [];
-  let file2Data = [];
-
-  // Collect data from file1
-  file1Stream.on('data', (data) => {
-    file1Data.push(data);
-  });
-
-  file1Stream.on('end', () => {
-    console.log('File1 data collection complete.');
-  });
-
-  file1Stream.on('error', (err) => {
-    console.error('Error reading file1:', err.message);
-  });
-
-  // Collect data from file2
-  file2Stream.on('data', (data) => {
-    file2Data.push(data);
-  });
-
-  file2Stream.on('end', () => {
-    console.log('File2 data collection complete.');
+    // Compare collected data
     compareData(file1Data, file2Data);
-  });
+  } catch (error) {
+    console.error('Error during file comparison:', error.message);
+  }
+}
 
-  file2Stream.on('error', (err) => {
-    console.error('Error reading file2:', err.message);
+// Function to read a JSON file and return its data as an array
+function readJSONFile(filePath) {
+  return new Promise((resolve, reject) => {
+    const data = [];
+    const stream = fs.createReadStream(filePath).pipe(JSONStream.parse('*'));
+
+    stream.on('data', (chunk) => {
+      data.push(chunk);
+    });
+
+    stream.on('end', () => {
+      console.log(`The file was read ${filePath}`);
+      resolve(data);
+    });
+
+    stream.on('error', (err) => {
+      console.log(`Error during reading ${filePath}: \n ${err}`);
+      reject(err);
+    });
   });
 }
 
