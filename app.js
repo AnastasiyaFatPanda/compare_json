@@ -43,7 +43,7 @@ function readJSONFile(filePath) {
 
 // Function to compare two arrays of JSON data and log differences
 function compareData(data1, data2) {
-  const length = Math.min(data1.length, data2.length);
+  const length = Math.max(data1.length, data2.length);
   let logEntries = '';
 
   for (let i = 0; i < length; i++) {
